@@ -1,0 +1,6 @@
+- docs
+- install ico, texts, license
+- sound, font
+- ceu syntax highlight
+- minimum mingw
+    - single .exe for drag/drop
