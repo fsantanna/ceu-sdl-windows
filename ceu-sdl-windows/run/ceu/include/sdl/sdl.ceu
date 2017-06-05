@@ -4,7 +4,7 @@
 #ifndef CEU_SDL_MODE_POLLING
 #ifndef CEU_SDL_MODE_WAITING
 #ifndef CEU_SDL_MODE_FRAME
-#define CEU_SDL_MODE_FRAME (1000/10)
+#define CEU_SDL_MODE_FRAME (1000/30)
 #endif
 #endif
 #endif
@@ -155,9 +155,9 @@ native/nohold _SDL_Circle_vs_Mouse,
 native/pre do
     ##include <SDL2/SDL.h>
     ##include <SDL2/SDL_image.h>
-    ##if 0
     ##include <SDL2/SDL_mixer.h>
     ##include <SDL2/SDL_ttf.h>
+    ##if 0
     ##include <SDL2/SDL2_gfxPrimitives.h>
     ##endif
 
@@ -410,7 +410,6 @@ do
             end;
     ren = &ren_;
 
-#if 0
     _TTF_Init();
         do finalize with
             _TTF_Quit();
@@ -420,7 +419,6 @@ do
         do finalize with
             _Mix_CloseAudio();
         end
-#endif
 
     _CEU_SDL_inited = 1;
     _CEU_SDL_WCLOCK_min = _CEU_WCLOCK_INACTIVE;
@@ -483,7 +481,6 @@ do
     await FOREVER;
 end
 
-#if 0
 code/await SDL_Open_Font (var _char&& path, var int size)
                             -> (var& _TTF_Font font)
                                 -> FOREVER
@@ -545,6 +542,5 @@ do
     sound = &sound_;
     await FOREVER;
 end
-#endif
 
 #endif
