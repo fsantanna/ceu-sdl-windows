@@ -33,7 +33,7 @@ SOFTWARE.
 PAK = {
     lua_exe = 'lua5.3',
     ceu_ver = '0.30-alpha',
-    ceu_git = 'f857e3347b1749b652897381f4ac7cd5baa00b2e',
+    ceu_git = 'bcf55436f9a78db2a80b0341ee0bd396d8872786',
     files = {
         ceu_c =
             [====[
@@ -294,10 +294,10 @@ typedef === TCEU_NTRL === tceu_ntrl;
 typedef === TCEU_NLBL === tceu_nlbl;
 
 #define CEU_API
-CEU_API void ceu_start (void);
+CEU_API void ceu_start (int argc, char* argv[]);
 CEU_API void ceu_stop  (void);
 CEU_API void ceu_input (tceu_nevt evt_id, void* evt_params);
-CEU_API int  ceu_loop  (void);
+CEU_API int  ceu_loop  (int argc, char* argv[]);
 
 struct tceu_stk;
 struct tceu_code_mem;
@@ -427,10 +427,10 @@ enum {
 
     /* emitable */
     CEU_INPUT__CLEAR,           /* 5 */
-    CEU_INPUT__CODE_TERMINATED,
     CEU_INPUT__PAUSE,
     CEU_INPUT__RESUME,
 CEU_INPUT__SEQ,
+    CEU_INPUT__CODE_TERMINATED,
     CEU_INPUT__ASYNC,
     CEU_INPUT__THREAD,
     CEU_INPUT__WCLOCK,
@@ -504,6 +504,9 @@ typedef struct tceu_jmp {
 } tceu_jmp;
 
 typedef struct tceu_app {
+    int    argc;
+    char** argv;
+
     bool end_ok;
     int  end_val;
 
@@ -723,6 +726,19 @@ int ceu_lua_atpanic (lua_State* lua) {
     ceu_callback_assert_msg(0, msg);
     return 0;
 }
+
+static void ceu_lua_createargtable (lua_State* lua, char** argv, int argc, int script) {
+    int i, narg;
+    if (script == argc) script = 0;  /* no script name? */
+    narg = argc - (script + 1);  /* number of positive indices */
+    lua_createtable(lua, narg, script + 1);
+    for (i = 0; i < argc; i++) {
+        lua_pushstring(lua, argv[i]);
+        lua_rawseti(lua, -2, i - script);
+    }
+    lua_setglobal(lua, "arg");
+}
+
 #endif
 
 /*****************************************************************************/
@@ -971,9 +987,7 @@ ceu_dbg_assert(0);
                 /* FINALIZE awakes now on "mark" */
                 ceu_lbl(occ, &_stk, range.mem, trlK, trl->lbl);
             }
-        } else if (occ->evt.id==CEU_INPUT__CODE_TERMINATED &&
-            (trl->evt.id==CEU_INPUT__CODE_TERMINATED || trl->evt.id==CEU_INPUT__PROPAGATE_CODE))
-        {
+        } else if (occ->evt.id==CEU_INPUT__CODE_TERMINATED && trl->evt.id==CEU_INPUT__PROPAGATE_CODE) {
             if (trl->evt.mem == occ->evt.mem) {
                 goto _CEU_AWAKE_YES_;
             }
@@ -985,7 +999,7 @@ ceu_dbg_assert(0);
                 ((tceu_nseq)(occ->seq-CEU_APP.seq_base))) {
                 goto _CEU_AWAKE_NO_;
             }
-            if (trl->evt.id>CEU_EVENT__MIN) {
+            if (trl->evt.id>CEU_EVENT__MIN || trl->evt.id==CEU_INPUT__CODE_TERMINATED) {
                 if (trl->evt.mem == occ->evt.mem) {
                     goto _CEU_AWAKE_YES_;   /* internal event matches "mem" */
                 }
@@ -1093,8 +1107,11 @@ CEU_API void ceu_input (tceu_nevt evt_id, void* evt_params)
     }
 }
 
-CEU_API void ceu_start (void) {
+CEU_API void ceu_start (int argc, char* argv[]) {
     ceu_callback_void_void(CEU_CALLBACK_START);
+
+    CEU_APP.argc     = argc;
+    CEU_APP.argv     = argv;
 
     CEU_APP.end_ok   = 0;
 
@@ -1139,9 +1156,9 @@ CEU_API void ceu_stop (void) {
 
 /*****************************************************************************/
 
-CEU_API int ceu_loop (void)
+CEU_API int ceu_loop (int argc, char* argv[])
 {
-    ceu_start();
+    ceu_start(argc, argv);
 
     while (!CEU_APP.end_ok) {
         ceu_callback_void_void(CEU_CALLBACK_STEP);
@@ -2966,8 +2983,9 @@ GG = { [1] = x * V'_Stmts' * V'Y' * (P(-1) + E('end of file'))
     , __luacmp = m.Cmt(V'__luacl' * m.Cb'lua',
                     function (s,i,a,b) return a == b end)
 
-    , __exp = P'@' * KK'(' * V'__Exp' * KK')'
-            + P'@' * V'__Exp'
+    , __exp = (P'@'-'@@') * KK'(' * V'__Exp' * KK')'
+            + (P'@'-'@@') * V'__Exp'
+            + m.Cs(P'@@'/'@')
 
 -- VARS, VECTORS, POOLS, VTS, EXTS
 
@@ -4515,7 +4533,7 @@ error'TODO: luacov never executes this?'
         for _, v in ipairs(me) do
             if type(v) == 'table' then
                 params[#params+1] = v
-                code[#code+1] = '_ceu_'..#params
+                code[#code+1] = '_ceu_'..#params..' '
                 names[#names+1] = code[#code]
             else
                 code[#code+1] = v;
@@ -4527,15 +4545,15 @@ error'TODO: luacov never executes this?'
         -- me.lua:    code as string
 
         if AST.par(me,'Set_Lua') or AST.par(me,'Set_Vec') then
-           table.insert(code, 1, 'return')
+           table.insert(code, 1, 'return ')
         end
 
         me.params = params
         if #params == 0 then
-            me.lua = table.concat(code,' ')
+            me.lua = table.concat(code,'')
         else
             me.lua = table.concat(names,', ')..' = ...\n'..
-                     table.concat(code,' ')
+                     table.concat(code,'')
         end
 
         me.tag = 'Lua'
@@ -4918,6 +4936,7 @@ do
         { 'u64','u32','u16','u8','int' },
         { 'usize','uint','int' },
         { 'ssize','int' },
+        { 'ssize','usize' },
         { 's64','s32','s16','s8','int' },
         { 'int','byte','int' },
     }
@@ -5232,7 +5251,15 @@ EXPS.F = {
     end,
 
     Abs_Cons = function (me)
-        local _, ID_abs, Abslist = unpack(me)
+        local Loc, ID_abs, Abslist = unpack(me)
+
+        if Loc then
+            -- var&? Ff f; f.Call(); // vs f!.Call()
+            assert(Loc.info.dcl)
+            local alias = unpack(Loc.info.dcl)
+            ASR(alias~='&?', me,
+                'invalid operand to `.´ : unexpected option alias')
+        end
 
         local err_str
         if ID_abs.dcl.tag == 'Data' then
@@ -9168,6 +9195,7 @@ F = {
     Loop = function (me)
         me.lbl_clr = new{'Loop__CLR'}
         me.lbl_cnt = new{'Loop_Continue__CNT'}
+        me.lbl_cnt_clr = new{'Loop_Continue__CLR'}
         me.lbl_out = new{'Loop_Break__OUT'}
         if AST.par(me,'Async') then
             me.lbl_asy = new{'Loop_Async__CNT'}
@@ -10766,13 +10794,13 @@ local function CASE (me, lbl)
     end
 end
 
-local function CLEAR (me)
+local function CLEAR (me, lbl)
     LINE(me, [[
 {
     ceu_stack_clear(_ceu_stk, _ceu_mem,
                     ]]..me.trails[1]..[[, ]]..me.trails[2]..[[);
 #ifdef CEU_FEATURES_LONGJMP
-    CEU_LONGJMP_SET(_ceu_stk,]]..me.lbl_clr.id..[[)
+    CEU_LONGJMP_SET(_ceu_stk,]]..(lbl and lbl.id or me.lbl_clr.id)..[[)
 #endif
     tceu_evt_range __ceu_range = { _ceu_mem, ]]..me.trails[1]..', '..me.trails[2]..[[ };
     tceu_evt_occ __ceu_occ = { {CEU_INPUT__CLEAR,{NULL}}, (tceu_nseq)(CEU_APP.seq+1),
@@ -10944,10 +10972,16 @@ if (]]..V(c)..[[) {
     end,
 
     Block = function (me)
+        LINE(me, [[
+{
+]])
         CONC_ALL(me)
         if me.needs_clear then
             CLEAR(me)
         end
+        LINE(me, [[
+}
+]])
     end,
 
     Var = function (me, base)
@@ -10965,6 +10999,7 @@ if (]]..V(c)..[[) {
             HALT(me, {
                 { ['evt.id']  = 'CEU_INPUT__CODE_TERMINATED' },
                 { ['evt.mem'] = 'NULL' },   -- will be set on Set_Alias/Spawn
+                { seq = '(tceu_nseq)(CEU_APP.seq+1)' },
                 { lbl = me.lbl.id },
                 lbl = me.lbl.id,
                 exec = code,
@@ -11496,7 +11531,7 @@ while (1) {
         CASE(me, me.lbl_cnt)
 
         if me.has_continue and me.trails_n>1 then
-            CLEAR(me)
+            CLEAR(me, me.lbl_cnt_clr)
         end
 
         assert(body.trails[1]==me.trails[1] and body.trails[2]==me.trails[2])
@@ -12109,6 +12144,7 @@ if (]]..V(Loc)..[[ != NULL) {
             HALT(me, {
                 { ['evt.id']  = 'CEU_INPUT__CODE_TERMINATED' },
                 { ['evt.mem'] = '(tceu_code_mem*)'..V(Loc) },
+                { seq = '(tceu_nseq)(CEU_APP.seq+1)' },
                 { lbl = me.lbl_out.id },
                 lbl = me.lbl_out.id,
             })
@@ -12481,6 +12517,7 @@ if (lua_isnumber(]]..LUA(me)..[[,-1)) {
 ceu_dbg_assert(]]..CUR('__lua_'..n)..[[ != NULL);
 luaL_openlibs(]]..CUR('__lua_'..n)..[[);
 lua_atpanic(]]..CUR('__lua_'..n)..[[, ceu_lua_atpanic);
+ceu_lua_createargtable(]]..CUR('__lua_'..n)..[[, CEU_APP.argv, CEU_APP.argc, CEU_APP.argc);
 ]])
     end,
     Lua_Do_Close = function (me)
