@@ -1,0 +1,37 @@
+#include "c.ceu"
+#include "sdl/sdl.ceu"
+
+code/await Rect (var& _SDL_Renderer ren, var SDL_Rect rect, var int speed)
+                    -> void
+do
+    par/or do
+        loop do
+            await (1000/speed) ms;
+            rect.x = rect.x + 3;
+            if rect.x > 500 then
+                break;
+            end
+        end
+    with
+        every SDL_REDRAW do
+            _SDL_SetRenderDrawColor(&&ren, 0xFF,0xFF,0xFF,0xFF);
+            _SDL_RenderFillRect(&&ren, &&rect as _SDL_Rect&&);
+        end
+    end
+end
+
+var SDL_Color bg = val SDL_Color(0x00,0x00,0x00,0xFF);
+
+var&? SDL_Init sdl = spawn SDL_Init("SDL 3", 800,480, bg);
+watching sdl do
+    loop do
+        watching 10s do
+            pool[5] Rect rs;
+            every 1s do
+                spawn Rect(&sdl!.ren, SDL_Rect(100,50+_rand()%380,20,20), 25) in rs;
+            end
+        end
+    end
+end
+
+escape 0;

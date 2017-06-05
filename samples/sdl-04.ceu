@@ -1,0 +1,72 @@
+#include "c.ceu"
+#include "sdl/sdl.ceu"
+
+code/await Rect (var& _SDL_Renderer ren, var SDL_Rect rect, var int speed) -> void do
+    event bool go_pause;
+
+    par/or do
+        pause/if go_pause do
+            loop do
+                await (1000/speed) ms;
+                rect.x = rect.x + 3;
+                if rect.x > 500 then
+                    break;
+                end
+            end
+        end
+    with
+        var bool is_paused = false;
+        loop do
+            var _SDL_MouseButtonEvent&& but = await SDL_MOUSEBUTTONDOWN;
+            if but:button == _SDL_BUTTON_LEFT then
+                if _SDL_Rect_vs_Mouse((&&rect as _SDL_Rect&&), but) == 1 then
+                    is_paused = not is_paused;
+                    emit go_pause(is_paused);
+                end
+            end
+        end
+    with
+        every SDL_REDRAW do
+            _SDL_SetRenderDrawColor(&&ren, 0xFF,0xFF,0xFF,0xFF);
+            _SDL_RenderFillRect(&&ren, &&rect as _SDL_Rect&&);
+        end
+    end
+
+    //await FOREVER;    // disappears but remains on memory
+end
+
+event bool go_pause_all;
+
+var SDL_Color bg = val SDL_Color(0x00,0x00,0x00,0xFF);
+
+var&? SDL_Init sdl = spawn SDL_Init("SDL 4", 800,480, bg);
+watching sdl do
+    loop do
+        par/or do
+            pause/if go_pause_all do
+                do
+                    pool[5] Rect rs;
+                    every 1s do
+                        spawn Rect(&sdl!.ren, SDL_Rect(100,50+_rand()%380,20,20),
+                                         10 + _rand()%20)
+                                in rs;
+                    end
+                end
+            end
+        with
+            var bool is_paused = false;
+            loop do
+                var _SDL_KeyboardEvent&& key = await SDL_KEYDOWN;
+                if key:keysym.sym == _SDLK_ESCAPE then
+                    break;
+                else/if key:keysym.sym == _SDLK_p then
+                    is_paused = not is_paused;
+                    emit go_pause_all(is_paused);
+                end
+            end
+        end
+    end
+end
+
+
+escape 0;

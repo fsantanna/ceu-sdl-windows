@@ -1,0 +1,92 @@
+#include "c.ceu"
+#include "sdl/sdl.ceu"
+
+native _ORGS;
+native/pre do
+    int ORGS = 0;
+end
+
+code/await Rect (var& _SDL_Renderer ren, var SDL_Rect rect, var int speed) -> void do
+    _ORGS = _ORGS + 1;
+        do finalize with
+            _ORGS = _ORGS - 1;
+        end;
+
+    var SDL_Color clr = val SDL_Color(0xFF,0xFF,0xFF,0xFF);
+
+    par/or do
+        every 100ms do
+            do
+                var int r = _rand()%5 - 2;
+                rect.x = rect.x + r/2;
+                rect.w = rect.w + r;
+                if rect.w <= 0 then
+                    rect.w = 1;
+                end
+                if rect.w >= 50 then
+                    rect.w = 50;
+                end
+            end
+
+            do
+                var int r = _rand()%5 - 2;
+                rect.y = rect.y - r/2;
+                rect.h = rect.h + r;
+                if rect.h <= 0 then
+                    rect.h = 1;
+                end
+                if rect.h >= 50 then
+                    rect.h = 50;
+                end
+            end
+
+            do
+                clr.r = clr.r + _rand()%5 - 2;
+                clr.g = clr.g + _rand()%5 - 2;
+                clr.b = clr.b + _rand()%5 - 2;
+            end
+        end
+    with
+        var float fx = rect.x;
+        loop do
+            var int dt = await SDL_DT;
+            fx = fx + ((speed*dt) as float)/1000;
+            rect.x = (fx as int);
+
+            if rect.x > 700 then
+                break;
+            end
+        end
+    with
+        every SDL_REDRAW do
+            _SDL_SetRenderDrawColor(&&ren, clr.r,clr.g,clr.b,0xFF);
+            _SDL_RenderFillRect(&&ren, (&&rect as _SDL_Rect&&));
+        end
+    end
+end
+
+var SDL_Color bg = val SDL_Color(0x00,0x00,0x00,0xFF);
+var&? SDL_Init sdl = spawn SDL_Init("SDL 6", 800,480, bg);
+watching sdl do
+    par do
+        loop do
+            watching 30s do
+                pool[10000] Rect rs;
+                every 40ms do
+                    var int i;
+                    loop i in [0->30[ do
+                        spawn Rect(&sdl!.ren, SDL_Rect(50,40+_rand()%380,20,20),
+                                         50 + _rand()%20)
+                                        in rs;
+                    end
+                end
+            end
+        end
+    with
+        every 1s do
+            _printf("<<< ORGS: %d\n", _ORGS);
+        end
+    end
+end
+
+escape 0;
