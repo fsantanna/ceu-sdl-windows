@@ -4,7 +4,7 @@
 #ifndef CEU_SDL_MODE_POLLING
 #ifndef CEU_SDL_MODE_WAITING
 #ifndef CEU_SDL_MODE_FRAME
-#define CEU_SDL_MODE_FRAME (1000/30)
+#define CEU_SDL_MODE_FRAME (1000/10)
 #endif
 #endif
 #endif

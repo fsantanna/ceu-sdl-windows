@@ -2070,6 +2070,7 @@ function ASR1 (cond, msg)
         return assert(false, msg)
                 -- TODO: error(msg) ???
     else
+		--DBG()
         DBG('>>> ERROR : '..msg)
         os.exit(1)
     end
@@ -2391,8 +2392,10 @@ if CEU.opts.pre then
 do
 -- "-C":  keep comments (because of nesting)
 -- "-dD": repeat #define's (because of macros used as C functions)
+DBG(CEU.opts.pre_exe..' -C -dD '..CEU.opts.pre_args..
+            ' "'..CEU.opts.pre_input..'" -o '..CEU.opts.pre_output..' 2>&1')
 local f = io.popen(CEU.opts.pre_exe..' -C -dD '..CEU.opts.pre_args..
-            ' '..CEU.opts.pre_input..' -o '..CEU.opts.pre_output..' 2>&1')
+            ' "'..CEU.opts.pre_input..'" -o '..CEU.opts.pre_output..' 2>&1')
 local out = f:read'*a'
 ASR(f:close(), out)
 
@@ -12862,10 +12865,11 @@ end
 if CEU.opts.cc then
     
 do
-DBG(CEU.opts.cc_exe..' -xc '..CEU.opts.cc_input..' '..  '-o '..CEU.opts.cc_output..' '..  CEU.opts.cc_args..' 2>&1')
-local cc = CEU.opts.cc_exe..' -xc '..CEU.opts.cc_input..' '..
-            '-o '..CEU.opts.cc_output..' '..
+DBG(CEU.opts.cc_exe..' -xc "'..CEU.opts.cc_input..'" '..  '-o "'..CEU.opts.cc_output..'" '..  CEU.opts.cc_args..' 2>&1')
+local cc = CEU.opts.cc_exe..' -xc "'..CEU.opts.cc_input..'" '..
+            '-o "'..CEU.opts.cc_output..'" '..
             CEU.opts.cc_args..' 2>&1'
+DBG('>>>', cc)
 local f = io.popen(cc)
 local err = f:read'*a'
 local ok = f:close()
