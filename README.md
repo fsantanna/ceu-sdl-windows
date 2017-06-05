@@ -1,3 +1,21 @@
+# Quick Start
+
+## Download & Install
+
+- Download the latest file from the [releases/](releases/) directory.
+- Execute the downloaded file.
+    - Administrator privilege is not required.
+    - Choose an installation directory.
+- Certify that a *Céu-SDL* shortcut has been created in the Desktop.
+
+## Execute
+
+- Open the installation directory in the `samples/` sub-directory.
+- Drag a sample file (e.g., `sdl-01.ceu`) and drop into the *Céu-SDL* shortcut.
+- Verify the program execution.
+
+# Description
+
 Céu-SDL supports the development of SDL applications in the programming
 language Céu:
 
@@ -27,23 +45,7 @@ extensions:
 - Seamless integration with standard SDL (e.g., `SDL_RenderFillRect`,
   `SDL_RenderPresent`, etc).
 
-# Quick Start
-
-## Download & Install
-
-- Download the latest file from [releases/].
-- Execute the downloaded file.
-    - Administrator privilege is not required.
-    - Choose an installation directory.
-- Certify that a `Céu-SDL` shortcut has been created in the Desktop.
-
-## Execute
-
-- Open the installation directory in the `samples/` sub-directory.
-- Drag a sample file (e.g., `sdl-01.ceu`) and drop into the `Céu-SDL` shortcut.
-- Verify the program execution.
-
-# Other
+# Other (TODO)
 
 - Notepad++
 - Documentation
