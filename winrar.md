@@ -1,10 +1,5 @@
 - cd ceu-sdl-windows/
-- select
-    - mingw
-    - run
-    - samples
-    - notepad++portable
-- right click
+- right click ceu-sdl/windows/
     - Add to archive...
         - [X] create SFX archive
         - Advanced
@@ -13,6 +8,12 @@
                     - Add shortcut...
                         - [x] Desktop
                         - Source file name
-                            - make.bat
+                            - ceu-sdl-windows\run\make.bat
                         - Shortcut name
-                            - Céu SDL
+                            - Céu-SDL
+                        - Shortcut icon
+                            - ceu-sdl-windows\star_16.ico
+                - Text and icon
+                    - Load SFX icon from the file
+                        - Browse...
+                            - ceu-sdl-windows/star_16.ico
