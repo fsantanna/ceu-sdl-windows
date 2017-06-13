@@ -1,5 +1,5 @@
-- cd ceu-sdl-windows/
-- right click ceu-sdl/windows/
+- cd ceu-sdl-windows.git/
+- right click ceu-sdl-windows/
     - Add to archive...
         - [X] create SFX archive
         - Advanced
@@ -17,3 +17,4 @@
                     - Load SFX icon from the file
                         - Browse...
                             - ceu-sdl-windows/star_16.ico
+- move ceu-sdl-windows.exe to releases/ceu-sdl-windows-vX.XX-XXX
