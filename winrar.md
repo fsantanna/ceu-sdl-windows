@@ -4,6 +4,9 @@
         - [X] create SFX archive
         - Advanced
             - SFX options...
+                - Setup
+                    - Run after extraction
+                        - ceu-sdl-windows\start.bat
                 - Advanced
                     - Add shortcut...
                         - [x] Desktop

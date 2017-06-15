@@ -1,6 +1,8 @@
+- ceu-edu
+- ceu-line-directives=true
 - docs
+- gfx primitives
 - install ico, texts, license
-- sound, font
 - ceu syntax highlight
 - minimum mingw
     - single .exe for drag/drop

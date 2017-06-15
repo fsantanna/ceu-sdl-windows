@@ -7,12 +7,17 @@
     - Administrator privilege is not required.
     - Choose an installation directory.
 - Certify that a *Céu-SDL* shortcut has been created in the Desktop.
+- Certify that the installation directory appears on the screen.
 
 ## Execute
 
 - Open the installation directory in the `samples/` sub-directory.
 - Drag a sample file (e.g., `sdl-01.ceu`) and drop into the *Céu-SDL* shortcut.
 - Verify the program execution.
+
+## Uninstall
+
+- Just delete the installation directory entirely.
 
 # Description
 
